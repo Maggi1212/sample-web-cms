@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Digital Services CMS</title>
+  <meta name="description" content="Content management dashboard for a Digital Services team." />
+  <style>
+    :root{
+      --bg: #0b1220;
+      --panel: rgba(255,255,255,.06);
+      --panel-2: rgba(255,255,255,.085);
+      --border: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --muted-2: rgba(255,255,255,.48);
+      --brand: #7c3aed; /* purple */
+      --brand-2: #22c55e; /* green */
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 12% 10%, rgba(124,58,237,.35) 0%, rgba(124,58,237,0) 60%),
+        radial-gradient(1000px 600px at 85% 20%, rgba(34,197,94,.25) 0%, rgba(34,197,94,0) 58%),
+        radial-gradient(900px 600px at 55% 90%, rgba(59,130,246,.18) 0%, rgba(59,130,246,0) 58%),
+        linear-gradient(180deg, #070b14 0%, var(--bg) 40%, #060a12 100%);
+      overflow-x:hidden;
+    }
+    a{ color:inherit; text-decoration:none; }
+    button, input, select, textarea{ font:inherit; color:inherit; }
+    .app{
+      min-height:100%;
+      display:grid;
+      grid-template-columns: 280px 1fr;
+    }
+
+    /* Sidebar */
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:18px 16px;
+      border-right:1px solid var(--border);
+      background: rgba(0,0,0,.12);
+      backdrop-filter: blur(14px);
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px 10px 14px;
+      margin-bottom:10px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:14px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.45) 0%, rgba(255,255,255,0) 45%),
+        linear-gradient(135deg, rgba(124,58,237,1), rgba(59,130,246,1));
+      box-shadow: 0 14px 30px rgba(124,58,237,.18);
+      border:1px solid rgba(255,255,255,.18);
+      flex:0 0 auto;
+    }
+    .brand h1{
+      font-size:14px;
+      line-height:1.2;
+      margin:0;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:3px 0 0;
+      font-size:12px;
+      color: var(--muted);
+    }
+
+    .nav{
+      margin-top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .nav a{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius: 14px;
+      color: var(--muted);
+      border:1px solid transparent;
+      transition: .18s ease;
+    }
+    .nav a:hover{
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-color: rgba(255,255,255,.08);
+    }
+    .nav a.active{
+      background: linear-gradient(135deg, rgba(124,58,237,.18), rgba(34,197,94,.12));
+      border-color: rgba(124,58,237,.35);
+      color: var(--text);
+    }
+    .ico{
+      width:30px;height:30px;border-radius:12px;
+      display:grid;place-items:center;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      font-size:14px;
+    }
+
+    .sidebar .divider{
+      margin:14px 10px;
+      height:1px;
+      background: rgba(255,255,255,.10);
+    }
+    .sidebar .hint{
+      margin:10px;
+      padding:12px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .hint .kicker{
+      font-size:12px;
+      color: var(--muted);
+      margin:0 0 6px;
+    }
+    .hint .title{
+      margin:0 0 10px;
+      font-size:13px;
+      line-height:1.3;
+    }
+    .hint .btn{
+      width:100%;
+      justify-content:center;
+    }
+
+    /* Main */
+    .main{
+      padding:22px 22px 40px;
+      max-width: 1300px;
+      margin:0 auto;
+      width:100%;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      justify-content:space-between;
+      margin-bottom:18px;
+    }
+    .topbar-left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .topbar h2{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .topbar .sub{
+      margin:0;
+      font-size:13px;
+      color: var(--muted);
+    }
+    .topbar-right{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .search{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+      min-width: 320px;
+    }
+    .search input{
+      width:100%;
+      background:transparent;
+      border:0;
+      outline:none;
+      color: var(--text);
+      font-size:13px;
+    }
+    .chip{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius: 999px;
+      background: rgba(124,58,237,.18);
+      border:1px solid rgba(124,58,237,.35);
+      color: rgba(255,255,255,.9);
+      white-space:nowrap;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+      transition:.18s ease;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.18);
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(59,130,246,.85));
+      border-color: rgba(255,255,255,.20);
+      box-shadow: 0 16px 34px rgba(124,58,237,.18);
+    }
+    .btn.primary:hover{ filter: brightness(1.05); }
+    .btn.ghost{
+      background: transparent;
+      border-color: rgba(255,255,255,.12);
+    }
+    .btn.danger{
+      background: rgba(239,68,68,.14);
+      border-color: rgba(239,68,68,.35);
+    }
+    .btn small{ color: var(--muted); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:16px;
+    }
+
+    .card{
+      background: var(--panel);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-header{
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.10);
+    }
+    .card-header h3{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .card-header .meta{
+      font-size:12px;
+      color: var(--muted);
+    }
+    .card-body{ padding:14px 16px; }
+
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .kpi{
+      padding:14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .kpi .label{ font-size:12px; color: var(--muted); margin:0 0 8px; }
+    .kpi .value{ font-size:20px; margin:0; letter-spacing:.2px; }
+    .kpi .delta{
+      margin-top:8px;
+      font-size:12px;
+      color: var(--muted);
+      display:flex; align-items:center; gap:8px;
+    }
+    .badge{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.88);
+    }
+    .badge.ok{ border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.12); }
+    .badge.warn{ border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.12); }
+    .badge.draft{ border-color: rgba(148,163,184,.28); background: rgba(148,163,184,.10); }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size:13px;
+    }
+    th, td{
+      text-align:left;
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      vertical-align:middle;
+    }
+    th{
+      font-size:12px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing:.2px;
+    }
+    .row-actions{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      opacity:.9;
+    }
+    .icon-btn{
+      width:34px; height:34px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .icon-btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.09); }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .item{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .item h4{ margin:0 0 4px; font-size:13px; }
+    .item p{ margin:0; font-size:12px; color: var(--muted); line-height:1.35; }
+    .item .right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex:0 0 auto;
+    }
+
+    .quick{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:10px;
+    }
+    .qcard{
+      padding:12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .qcard .top{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom:10px;
+    }
+    .qcard .top strong{ font-size:13px; }
+    .qcard .desc{ margin:0; font-size:12px; color: var(--muted); line-height:1.35; }
+    .qcard .go{ margin-top:10px; width:100%; justify-content:center; }
+
+    /* Modal */
+    .backdrop{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index: 50;
+    }
+    .backdrop.show{ display:flex; }
+    .modal{
+      width:min(760px, 100%);
+      border-radius: 22px;
+      background: rgba(10,14,26,.92);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: 0 30px 90px rgba(0,0,0,.65);
+      overflow:hidden;
+      backdrop-filter: blur(18px);
+    }
+    .modal header{
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+    }
+    .modal header h3{ margin:0; font-size:14px; }
+    .modal .content{ padding:16px; }
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+    }
+    .field.full{ grid-column: 1 / -1; }
+    .label{
+      font-size:12px;
+      color: var(--muted);
+    }
+    .control{
+      padding:11px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+      outline:none;
+    }
+    textarea.control{ min-height: 110px; resize: vertical; }
+    .modal footer{
+      padding:14px 16px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      border-top:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+    }
+    .help{
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.35;
+      max-width: 62ch;
+    }
+    .pill{
+      font-family: var(--mono);
+      font-size:11px;
+      padding:3px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.86);
+      display:inline-block;
+      transform: translateY(-1px);
+    }
+
+    /* Responsive */
+    @media (max-width: 1040px){
+      .app{ grid-template-columns: 84px 1fr; }
+      .brand h1, .brand p, .nav span, .hint{ display:none; }
+      .brand{ justify-content:center; }
+      .nav a{ justify-content:center; padding:10px; }
+      .ico{ width:36px; height:36px; border-radius:14px; }
+      .search{ min-width: 240px; }
+      .kpis{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .grid{ grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px){
+      .topbar{ flex-direction:column; align-items:stretch; }
+      .topbar-right{ flex-wrap:wrap; }
+      .search{ min-width: 0; width:100%; }
+      .kpis{ grid-template-columns: 1fr; }
+      .form{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Digital Services CMS</h1>
+          <p>Content + services dashboard</p>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Primary">
+        <a class="active" href="#dashboard"><span class="ico">🏠</span><span>Dashboard</span></a>
+        <a href="#content"><span class="ico">🗂️</span><span>Content</span></a>
+        <a href="#services"><span class="ico">🧩</span><span>Services</span></a>
+        <a href="#requests"><span class="ico">📥</span><span>Requests</span></a>
+        <a href="#analytics"><span class="ico">📊</span><span>Analytics</span></a>
+        <a href="#settings"><span class="ico">⚙️</span><span>Settings</span></a>
+      </nav>
+
+      <div class="divider"></div>
+
+      <div class="hint">
+        <p class="kicker">Quick publish</p>
+        <p class="title">Drafting a service update? Create a post and route it for review.</p>
+        <button class="btn primary" id="openCreate">
+          <span class="ico" style="width:28px;height:28px;border-radius:12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.18)">＋</span>
+          New content
+        </button>
+      </div>
+    </aside>
+
+    <main class="main" id="dashboard">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2>Dashboard</h2>
+          <p class="sub">Manage service pages, announcements, and requests across the Digital Services team.</p>
+        </div>
+        <div class="topbar-right">
+          <div class="search" role="search">
+            <span style="opacity:.75">⌘K</span>
+            <input id="searchInput" placeholder="Search content, services, tags…" aria-label="Search" />
+            <span class="chip" id="searchChip">All</span>
+          </div>
+          <button class="btn ghost" id="toggleFilter" title="Toggle filter">
+            <span class="ico" style="width:28px;height:28px;border-radius:12px">🔎</span>
+            Filter
+          </button>
+          <button class="btn primary" id="openCreateTop">
+            <span class="ico" style="width:28px;height:28px;border-radius:12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.18)">＋</span>
+            Create
+          </button>
+        </div>
+      </header>
+
+      <section class="kpis" aria-label="Key metrics">
+        <div class="kpi">
+          <p class="label">Published this week</p>
+          <p class="value" id="kpiPublished">12</p>
+          <div class="delta"><span class="badge ok">▲ 18%</span><span>vs last week</span></div>
+        </div>
+        <div class="kpi">
+          <p class="label">Drafts awaiting review</p>
+          <p class="value" id="kpiDrafts">7</p>
+          <div class="delta"><span class="badge warn">Needs attention</span><span>2 overdue</span></div>
+        </div>
+        <div class="kpi">
+          <p class="label">Open requests</p>
+          <p class="value" id="kpiRequests">19</p>
+          <div class="delta"><span class="badge">SLA 48h</span><span>avg 31h</span></div>
+        </div>
+        <div class="kpi">
+          <p class="label">Service uptime (30d)</p>
+          <p class="value" id="kpiUptime">99.94%</p>
+          <div class="delta"><span class="badge ok">Healthy</span><span>no incidents</span></div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card" id="content">
+          <div class="card-header">
+            <div>
+              <h3>Recent content</h3>
+              <div class="meta">Announcements, release notes, and service pages</div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="btn" id="viewAllContent">View all</button>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div style="overflow:auto;">
+              <table aria-label="Recent content table">
+                <thead>
+                  <tr>
+                    <th style="min-width: 230px;">Title</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Owner</th>
+                    <th>Updated</th>
+                    <th style="text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="contentRows">
+                  <!-- JS will render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <aside class="card" id="requests">
+          <div class="card-header">
+            <div>
+              <h3>Queue</h3>
+              <div class="meta">Incoming updates + service requests</div>
+            </div>
+            <div class="meta"><span class="pill">triage</span></div>
+          </div>
+          <div class="card-body">
+            <div class="list" id="queueList">
+              <!-- JS will render -->
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="card" style="box-shadow:none;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10)">
+              <div class="card-header" style="background:transparent">
+                <h3>Quick actions</h3>
+                <div class="meta">Common workflows</div>
+              </div>
+              <div class="card-body">
+                <div class="quick">
+                  <div class="qcard">
+                    <div class="top">
+                      <strong>New service page</strong>
+                      <span class="badge">Template</span>
+                    </div>
+                    <p class="desc">Create a standardized service page with owners, SLAs, and dependencies.</p>
+                    <button class="btn go" data-template="Service Page">Create</button>
+                  </div>
+                  <div class="qcard">
+                    <div class="top">
+                      <strong>Announcement</strong>
+                      <span class="badge ok">Fast</span>
+                    </div>
+                    <p class="desc">Post a short update to notify users about changes, outages, or new features.</p>
+                    <button class="btn go" data-template="Announcement">Create</button>
+                  </div>
+                  <div class="qcard">
+                    <div class="top">
+                      <strong>Release notes</strong>
+                      <span class="badge">Weekly</span>
+                    </div>
+                    <p class="desc">Capture what shipped, what changed, and what’s next for each service.</p>
+                    <button class="btn go" data-template="Release Notes">Create</button>
+                  </div>
+                  <div class="qcard">
+                    <div class="top">
+                      <strong>Policy update</strong>
+                      <span class="badge warn">Review</span>
+                    </div>
+                    <p class="desc">Route changes through review with a clear audit trail and approvals.</p>
+                    <button class="btn go" data-template="Policy Update">Create</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <footer style="margin-top:18px; color: var(--muted-2); font-size:12px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <div>© <span id="year"></span> Digital Services • Internal CMS UI mock</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="pill">v0.1</span>
+          <span class="pill">access: editor</span>
+          <span class="pill">env: staging</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="backdrop" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <header>
+        <h3 id="modalTitle">Create content</h3>
+        <button class="icon-btn" id="closeModal" aria-label="Close">✕</button>
+      </header>
+
+      <div class="content">
+        <div class="form">
+          <div class="field full">
+            <div class="label">Title</div>
+            <input class="control" id="fTitle" placeholder="e.g., Identity Service: Planned Maintenance" />
+          </div>
+
+          <div class="field">
+            <div class="label">Type</div>
+            <select class="control" id="fType">
+              <option>Announcement</option>
+              <option>Service Page</option>
+              <option>Release Notes</option>
+              <option>Policy Update</option>
+              <option>Knowledge Base</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <div class="label">Status</div>
+            <select class="control" id="fStatus">
+              <option>Draft</option>
+              <option>In Review</option>
+              <option>Published</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <div class="label">Owner</div>
+            <select class="control" id="fOwner">
+              <option>Digital Services</option>
+              <option>Platform Engineering</option>
+              <option>Security</option>
+              <option>Data & Analytics</option>
+              <option>Web Experience</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <div class="label">Tags</div>
+            <input class="control" id="fTags" placeholder="auth, uptime, release, policy" />
+          </div>
+
+          <div class="field full">
+            <div class="label">Summary</div>
+            <textarea class="control" id="fSummary" placeholder="Write a short summary (what changed, who’s impacted, and next steps)."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="help">
+          Tip: Use <span class="pill">In Review</span> for anything that needs approvals. Keep titles user-facing.
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn ghost" id="saveDraft">Save draft</button>
+          <button class="btn primary" id="publishNow">Publish</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const content = [
+      { title: "API Gateway: Rate limit update", type: "Announcement", status: "Published", owner: "Platform Engineering", updated: "Today, 10:12" },
+      { title: "Digital Services: Q1 Roadmap", type: "Knowledge Base", status: "In Review", owner: "Digital Services", updated: "Yesterday, 16:40" },
+      { title: "Identity Service (SSO) — Service Page", type: "Service Page", status: "Published", owner: "Security", updated: "Feb 4" },
+      { title: "Release Notes — Week 5", type: "Release Notes", status: "Draft", owner: "Web Experience", updated: "Feb 3" },
+      { title: "Data retention policy (updated)", type: "Policy Update", status: "In Review", owner: "Security", updated: "Jan 31" }
+    ];
+
+    const queue = [
+      { title: "Add incident banner to Status page", detail: "Request from Support • Priority: Medium", badge: "SLA 48h" },
+      { title: "Update onboarding docs for new SSO flow", detail: "Request from Security • Priority: High", badge: "High" },
+      { title: "Service catalog: add new dependency field", detail: "Request from Platform • Priority: Low", badge: "Low" }
+    ];
+
+    const $ = (sel) => document.querySelector(sel);
+
+    function statusBadge(status){
+      const cls =
+        status === "Published" ? "ok" :
+        status === "In Review" ? "warn" :
+        "draft";
+      return `<span class="badge ${cls}">${status}</span>`;
+    }
+
+    function renderContent(rows){
+      $("#contentRows").innerHTML = rows.map((r, i) => `
+        <tr>
+          <td>
+            <div style="display:flex; flex-direction:column; gap:3px;">
+              <div style="font-weight:600;">${escapeHtml(r.title)}</div>
+              <div style="font-size:12px; color: var(--muted);">ID: <span style="font-family: var(--mono); opacity:.9;">DS-${String(i+101).padStart(3,"0")}</span></div>
+            </div>
+          </td>
+          <td>${escapeHtml(r.type)}</td>
+          <td>${statusBadge(r.status)}</td>
+          <td>${escapeHtml(r.owner)}</td>
+          <td style="color: var(--muted);">${escapeHtml(r.updated)}</td>
+          <td>
+            <div class="row-actions">
+              <button class="icon-btn" title="Edit" aria-label="Edit">✏️</button>
+              <button class="icon-btn" title="Duplicate" aria-label="Duplicate">⧉</button>
+              <button class="icon-btn" title="Open" aria-label="Open">↗</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function renderQueue(items){
+      $("#queueList").innerHTML = items.map((q) => `
+        <div class="item">
+          <div>
+            <h4>${escapeHtml(q.title)}</h4>
+            <p>${escapeHtml(q.detail)}</p>
+          </div>
+          <div class="right">
+            <span class="badge">${escapeHtml(q.badge)}</span>
+            <button class="icon-btn" title="Triage" aria-label="Triage">➜</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function openModal(template){
+      $("#backdrop").classList.add("show");
+      if (template){
+        $("#fType").value = template;
+        $("#fTitle").value = template === "Service Page"
+          ? "New Service — Service Page"
+          : template === "Announcement"
+          ? "Planned maintenance notice"
+          : template === "Release Notes"
+          ? "Release Notes — Week __"
+          : "Policy change summary";
+      }
+      $("#fTitle").focus();
+    }
+    function closeModal(){ $("#backdrop").classList.remove("show"); }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[s]));
+    }
+
+    // Search / filter (simple client-side)
+    let filterMode = "All"; // All | Content | Services (demo)
+    function applySearch(){
+      const q = $("#searchInput").value.trim().toLowerCase();
+      $("#searchChip").textContent = filterMode;
+
+      let rows = content.slice();
+      if (q){
+        rows = rows.filter(r =>
+          (r.title + " " + r.type + " " + r.status + " " + r.owner).toLowerCase().includes(q)
+        );
+      }
+      renderContent(rows);
+    }
+
+    // Wire up
+    $("#year").textContent = new Date().getFullYear();
+
+    renderContent(content);
+    renderQueue(queue);
+
+    $("#openCreate").addEventListener("click", () => openModal());
+    $("#openCreateTop").addEventListener("click", () => openModal());
+    $("#closeModal").addEventListener("click", closeModal);
+    $("#backdrop").addEventListener("click", (e) => { if (e.target.id === "backdrop") closeModal(); });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+      // Cmd/Ctrl + K focuses search
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
+        e.preventDefault();
+        $("#searchInput").focus();
+      }
+    });
+
+    $("#toggleFilter").addEventListener("click", () => {
+      filterMode = filterMode === "All" ? "Content" : filterMode === "Content" ? "Services" : "All";
+      applySearch();
+    });
+
+    $("#searchInput").addEventListener("input", applySearch);
+
+    document.querySelectorAll("[data-template]").forEach(btn => {
+      btn.addEventListener("click", () => openModal(btn.getAttribute("data-template")));
+    });
+
+    function fakeSave(mode){
+      const title = $("#fTitle").value.trim() || "(Untitled)";
+      const type = $("#fType").value;
+      const owner = $("#fOwner").value;
+      const status = mode === "publish" ? "Published" : "Draft";
+      content.unshift({ title, type, owner, status, updated: "Just now" });
+      renderContent(content);
+      closeModal();
+    }
+
+    $("#saveDraft").addEventListener("click", () => fakeSave("draft"));
+    $("#publishNow").addEventListener("click", () => fakeSave("publish"));
+    $("#viewAllContent").addEventListener("click", () => alert("Hook this up to /content in your app."));
+  </script>
+</body>
+</html>
